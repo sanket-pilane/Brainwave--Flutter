@@ -21,7 +21,7 @@ class MyButton extends StatelessWidget {
           padding: const EdgeInsets.all(14).copyWith(top: 10, bottom: 10),
           child: Center(
             child: Text(
-              "Sign Up",
+              title,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,

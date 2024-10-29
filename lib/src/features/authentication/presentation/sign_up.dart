@@ -1,7 +1,9 @@
+import 'package:brainwave/home_page.dart';
 import 'package:brainwave/src/components/my_button.dart';
 import 'package:brainwave/src/components/my_textfields.dart';
 import 'package:brainwave/src/components/text_tile.dart';
 import 'package:brainwave/src/constants/assets.dart';
+import 'package:brainwave/src/features/authentication/presentation/sign_in.dart';
 import 'package:flutter/material.dart';
 
 class SignUp extends StatelessWidget {
@@ -25,6 +27,7 @@ class SignUp extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Spacer(),
             Text(
               "Create an account",
               style: TextStyle(
@@ -71,30 +74,46 @@ class SignUp extends StatelessWidget {
             ),
             MyButton(
               title: "Sign up",
-              onTap: () {},
+              onTap: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HomePage(),
+                    ));
+              },
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Already have account?",
-                  style: TextStyle(
-                    color: Colors.white,
+            Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Already have account?",
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  width: 6,
-                ),
-                Text(
-                  "Login",
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                  SizedBox(
+                    width: 6,
                   ),
-                ),
-              ],
-            )
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(context,
+                          MaterialPageRoute(builder: (context) => SignIn()));
+                    },
+                    child: Text(
+                      "Login",
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
