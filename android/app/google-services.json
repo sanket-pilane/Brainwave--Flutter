@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "88441103075",
+    "project_id": "brainwave-fd11c",
+    "storage_bucket": "brainwave-fd11c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:88441103075:android:02b23fa01339393efd1bd6",
+        "android_client_info": {
+          "package_name": "app.srushti.brainwave"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiYjzwhvm7j2Q-cEKNYNTxJwPCOZS7wOE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

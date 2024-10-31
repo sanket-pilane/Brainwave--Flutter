@@ -1,4 +1,4 @@
-package com.example.brainwave
+package app.srushti.brainwave
 
 import io.flutter.embedding.android.FlutterActivity
 

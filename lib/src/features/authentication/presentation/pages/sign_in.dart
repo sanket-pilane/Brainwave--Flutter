@@ -1,13 +1,12 @@
-import 'package:brainwave/home_page.dart';
 import 'package:brainwave/src/components/my_button.dart';
 import 'package:brainwave/src/components/my_textfields.dart';
 import 'package:brainwave/src/components/text_tile.dart';
 import 'package:brainwave/src/constants/assets.dart';
-import 'package:brainwave/src/features/authentication/presentation/sign_in.dart';
+import 'package:brainwave/src/features/authentication/presentation/pages/sign_up.dart';
 import 'package:flutter/material.dart';
 
-class SignUp extends StatelessWidget {
-  const SignUp({super.key});
+class SignIn extends StatelessWidget {
+  const SignIn({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +28,7 @@ class SignUp extends StatelessWidget {
           children: [
             Spacer(),
             Text(
-              "Create an account",
+              "Login to your Account",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 36,
@@ -40,7 +39,7 @@ class SignUp extends StatelessWidget {
               height: 20,
             ),
             Text(
-              "Sign up with",
+              "Login with",
               style: TextStyle(
                 color: Colors.grey.shade400,
               ),
@@ -65,22 +64,12 @@ class SignUp extends StatelessWidget {
                 hintText: "Email", icon: Icons.mail, obscureText: false),
             MyTextfield(
                 hintText: "Password", icon: Icons.lock, obscureText: true),
-            MyTextfield(
-                hintText: "Confirm Password",
-                icon: Icons.lock,
-                obscureText: true),
             const SizedBox(
               height: 10,
             ),
             MyButton(
-              title: "Sign up",
-              onTap: () {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HomePage(),
-                    ));
-              },
+              title: "Login",
+              onTap: () {},
             ),
             Spacer(),
             Padding(
@@ -89,7 +78,7 @@ class SignUp extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Already have account?",
+                    "Don't have account?",
                     style: TextStyle(
                       color: Colors.white,
                     ),
@@ -100,10 +89,10 @@ class SignUp extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => SignIn()));
+                          MaterialPageRoute(builder: (context) => SignUp()));
                     },
                     child: Text(
-                      "Login",
+                      "Sign up",
                       style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,

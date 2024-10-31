@@ -1,5 +1,5 @@
 import 'package:brainwave/home_page.dart';
-import 'package:brainwave/src/features/authentication/presentation/sign_up.dart';
+import 'package:brainwave/src/features/authentication/presentation/pages/sign_up.dart';
 import 'package:brainwave/src/features/on_boarding/presentation/intro_page1.dart';
 import 'package:brainwave/src/features/on_boarding/presentation/intro_page2.dart';
 import 'package:brainwave/src/features/on_boarding/presentation/intro_page3.dart';

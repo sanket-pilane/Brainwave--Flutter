@@ -1,12 +1,13 @@
+import 'package:brainwave/home_page.dart';
 import 'package:brainwave/src/components/my_button.dart';
 import 'package:brainwave/src/components/my_textfields.dart';
 import 'package:brainwave/src/components/text_tile.dart';
 import 'package:brainwave/src/constants/assets.dart';
-import 'package:brainwave/src/features/authentication/presentation/sign_up.dart';
+import 'package:brainwave/src/features/authentication/presentation/pages/sign_in.dart';
 import 'package:flutter/material.dart';
 
-class SignIn extends StatelessWidget {
-  const SignIn({super.key});
+class SignUp extends StatelessWidget {
+  const SignUp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -64,12 +65,22 @@ class SignIn extends StatelessWidget {
                 hintText: "Email", icon: Icons.mail, obscureText: false),
             MyTextfield(
                 hintText: "Password", icon: Icons.lock, obscureText: true),
+            MyTextfield(
+                hintText: "Confirm Password",
+                icon: Icons.lock,
+                obscureText: true),
             const SizedBox(
               height: 10,
             ),
             MyButton(
-              title: "Login",
-              onTap: () {},
+              title: "Sign up",
+              onTap: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HomePage(),
+                    ));
+              },
             ),
             Spacer(),
             Padding(
@@ -78,7 +89,7 @@ class SignIn extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Don't have account?",
+                    "Already have account?",
                     style: TextStyle(
                       color: Colors.white,
                     ),
@@ -89,10 +100,10 @@ class SignIn extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => SignUp()));
+                          MaterialPageRoute(builder: (context) => SignIn()));
                     },
                     child: Text(
-                      "Sign up",
+                      "Login",
                       style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,
