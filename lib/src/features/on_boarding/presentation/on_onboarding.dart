@@ -1,4 +1,5 @@
 import 'package:brainwave/home_page.dart';
+import 'package:brainwave/src/features/authentication/presentation/pages/auth_page.dart';
 import 'package:brainwave/src/features/authentication/presentation/pages/sign_up.dart';
 import 'package:brainwave/src/features/on_boarding/presentation/intro_page1.dart';
 import 'package:brainwave/src/features/on_boarding/presentation/intro_page2.dart';
@@ -66,7 +67,7 @@ class _OnOnboardingState extends State<OnOnboarding> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => SignUp(),
+                                builder: (context) => AuthPage(),
                               ));
                         },
                         child: Text(

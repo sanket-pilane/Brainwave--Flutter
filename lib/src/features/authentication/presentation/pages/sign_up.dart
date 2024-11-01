@@ -3,11 +3,43 @@ import 'package:brainwave/src/components/my_button.dart';
 import 'package:brainwave/src/components/my_textfields.dart';
 import 'package:brainwave/src/components/text_tile.dart';
 import 'package:brainwave/src/constants/assets.dart';
+import 'package:brainwave/src/features/authentication/presentation/cubits/auth_cubits.dart';
 import 'package:brainwave/src/features/authentication/presentation/pages/sign_in.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SignUp extends StatelessWidget {
-  const SignUp({super.key});
+class SignUp extends StatefulWidget {
+  final void Function()? onTap;
+  const SignUp({super.key, required this.onTap});
+
+  @override
+  State<SignUp> createState() => _SignUpState();
+}
+
+class _SignUpState extends State<SignUp> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+
+  void register() async {
+    final String email = emailController.text;
+    final String pass = passwordController.text;
+    final String confirmPass = confirmPasswordController.text;
+    final authCubit = context.read<AuthCubits>();
+
+    if (email.isNotEmpty && pass.isNotEmpty && confirmPass.isNotEmpty) {
+      if (pass == confirmPass) {
+        authCubit.register(email, pass);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("Confirm password must be same as Password")));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Please Enter both email and Password")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,26 +94,27 @@ class SignUp extends StatelessWidget {
               height: 10,
             ),
             MyTextfield(
-                hintText: "Email", icon: Icons.mail, obscureText: false),
+              hintText: "Email",
+              icon: Icons.mail,
+              obscureText: false,
+              controller: emailController,
+            ),
             MyTextfield(
-                hintText: "Password", icon: Icons.lock, obscureText: true),
+              hintText: "Password",
+              icon: Icons.lock,
+              obscureText: true,
+              controller: passwordController,
+            ),
             MyTextfield(
-                hintText: "Confirm Password",
-                icon: Icons.lock,
-                obscureText: true),
+              hintText: "Confirm Password",
+              icon: Icons.lock,
+              obscureText: true,
+              controller: confirmPasswordController,
+            ),
             const SizedBox(
               height: 10,
             ),
-            MyButton(
-              title: "Sign up",
-              onTap: () {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HomePage(),
-                    ));
-              },
-            ),
+            MyButton(title: "Sign up", onTap: register),
             Spacer(),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -98,10 +131,7 @@ class SignUp extends StatelessWidget {
                     width: 6,
                   ),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => SignIn()));
-                    },
+                    onTap: widget.onTap,
                     child: Text(
                       "Login",
                       style: TextStyle(

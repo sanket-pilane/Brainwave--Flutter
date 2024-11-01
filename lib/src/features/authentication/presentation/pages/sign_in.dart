@@ -2,11 +2,42 @@ import 'package:brainwave/src/components/my_button.dart';
 import 'package:brainwave/src/components/my_textfields.dart';
 import 'package:brainwave/src/components/text_tile.dart';
 import 'package:brainwave/src/constants/assets.dart';
-import 'package:brainwave/src/features/authentication/presentation/pages/sign_up.dart';
+import 'package:brainwave/src/features/authentication/presentation/cubits/auth_cubits.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SignIn extends StatelessWidget {
-  const SignIn({super.key});
+class SignIn extends StatefulWidget {
+  final void Function()? onTap;
+  const SignIn({super.key, required this.onTap});
+
+  @override
+  State<SignIn> createState() => _SignInState();
+}
+
+class _SignInState extends State<SignIn> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  void login() async {
+    final String email = emailController.text;
+    final String pass = passwordController.text;
+
+    final authCubit = context.read<AuthCubits>();
+
+    if (email.isNotEmpty && pass.isNotEmpty) {
+      authCubit.login(email, pass);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Please Enter both email and Password")));
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,15 +92,23 @@ class SignIn extends StatelessWidget {
               height: 10,
             ),
             MyTextfield(
-                hintText: "Email", icon: Icons.mail, obscureText: false),
+              hintText: "Email",
+              icon: Icons.mail,
+              obscureText: false,
+              controller: emailController,
+            ),
             MyTextfield(
-                hintText: "Password", icon: Icons.lock, obscureText: true),
+              hintText: "Password",
+              icon: Icons.lock,
+              obscureText: true,
+              controller: passwordController,
+            ),
             const SizedBox(
               height: 10,
             ),
             MyButton(
               title: "Login",
-              onTap: () {},
+              onTap: login,
             ),
             Spacer(),
             Padding(
@@ -87,10 +126,7 @@ class SignIn extends StatelessWidget {
                     width: 6,
                   ),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => SignUp()));
-                    },
+                    onTap: widget.onTap,
                     child: Text(
                       "Sign up",
                       style: TextStyle(
