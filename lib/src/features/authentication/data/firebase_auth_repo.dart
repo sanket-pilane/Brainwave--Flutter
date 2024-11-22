@@ -1,6 +1,7 @@
 import 'package:brainwave/src/features/authentication/domain/entities/app_user.dart';
 import 'package:brainwave/src/features/authentication/domain/repo/auth_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class FirebaseAuthRepo implements AuthRepo {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
@@ -37,6 +38,32 @@ class FirebaseAuthRepo implements AuthRepo {
   @override
   Future<void> logout() async {
     await firebaseAuth.signOut();
+  }
+
+  @override
+  Future<AppUser?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
+
+      final GoogleSignInAuthentication gAuth = await gUser!.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        idToken: gAuth.idToken,
+        accessToken: gAuth.accessToken,
+      );
+
+      UserCredential uCredential =
+          await firebaseAuth.signInWithCredential(credential);
+
+      AppUser user = AppUser(
+          uid: uCredential.user!.uid,
+          email: uCredential.user!.email!,
+          name: "");
+
+      return user;
+    } catch (e) {
+      throw Exception("Failed to login: $e");
+    }
   }
 
   @override

@@ -32,6 +32,12 @@ class _SignInState extends State<SignIn> {
     }
   }
 
+  void googleAuth() async {
+    final authCubit = context.read<AuthCubits>();
+
+    authCubit.googleAuth();
+  }
+
   @override
   void dispose() {
     emailController.dispose();
@@ -80,8 +86,10 @@ class _SignInState extends State<SignIn> {
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                TextTile(imagePath: kGoogleLogo, title: "Google"),
+              children: [
+                GestureDetector(
+                    onTap: googleAuth,
+                    child: TextTile(imagePath: kGoogleLogo, title: "Google")),
                 SizedBox(
                   width: 10,
                 ),

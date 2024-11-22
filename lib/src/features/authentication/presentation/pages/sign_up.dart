@@ -41,6 +41,12 @@ class _SignUpState extends State<SignUp> {
     }
   }
 
+  void googleAuth() async {
+    final authCubit = context.read<AuthCubits>();
+
+    authCubit.googleAuth();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,8 +88,10 @@ class _SignUpState extends State<SignUp> {
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                TextTile(imagePath: kGoogleLogo, title: "Google"),
+              children: [
+                GestureDetector(
+                    onTap: googleAuth,
+                    child: TextTile(imagePath: kGoogleLogo, title: "Google")),
                 SizedBox(
                   width: 10,
                 ),
