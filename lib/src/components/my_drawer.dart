@@ -1,5 +1,8 @@
+import 'package:brainwave/src/constants/colors.dart';
+import 'package:brainwave/src/features/authentication/presentation/cubits/auth_cubits.dart';
 import 'package:brainwave/src/features/code/presentation/pages/code_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hidden_drawer_menu/hidden_drawer_menu.dart';
 
 class MyDrawer extends StatefulWidget {
@@ -12,7 +15,8 @@ class MyDrawer extends StatefulWidget {
 class _MyDrawerState extends State<MyDrawer> {
   List<ScreenHiddenDrawer> _pages = [];
 
-  final baseStyle = TextStyle(color: Colors.black, fontWeight: FontWeight.w500);
+  final baseStyle =
+      TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500);
 
   final selectedStyle = TextStyle(
       color: Colors.grey.shade300, fontWeight: FontWeight.bold, fontSize: 16);
@@ -52,19 +56,25 @@ class _MyDrawerState extends State<MyDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    void signOut() async {
+      final authCubit = context.read<AuthCubits>();
+
+      authCubit.logout();
+    }
+
     return HiddenDrawerMenu(
       isTitleCentered: true,
-      backgroundColorAppBar: Colors.transparent,
+      backgroundColorAppBar: AppColors.iconGrey,
       actionsAppBar: [
         IconButton(
             // ignore: avoid_print
-            onPressed: () => print("New Chat"),
+            onPressed: () => signOut(),
             icon: Icon(
               Icons.chat,
               size: 20,
             ))
       ],
-      backgroundColorMenu: Colors.deepPurple.shade300,
+      backgroundColorMenu: AppColors.cardColor,
       screens: _pages,
       initPositionSelected: 0,
     );
