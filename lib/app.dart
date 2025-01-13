@@ -13,9 +13,11 @@ import 'package:brainwave/src/features/on_boarding/presentation/on_onboarding.da
 // Import your home page
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MyApp extends StatelessWidget {
   final authRepo = FirebaseAuthRepo();
+
   MyApp({super.key});
 
   @override
@@ -26,6 +28,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: "Brainwave",
           theme: ThemeData(
+            textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
             scaffoldBackgroundColor: AppColors.background,
             appBarTheme: AppBarTheme(backgroundColor: AppColors.searchBar),
           ),

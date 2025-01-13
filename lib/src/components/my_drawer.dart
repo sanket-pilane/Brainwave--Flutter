@@ -64,7 +64,13 @@ class _MyDrawerState extends State<MyDrawer> {
 
     return HiddenDrawerMenu(
       isTitleCentered: true,
-      backgroundColorAppBar: AppColors.iconGrey,
+      elevationAppBar: 0,
+      styleAutoTittleName: TextStyle(color: Colors.white),
+      leadingAppBar: Icon(
+        Icons.menu,
+        color: Colors.white,
+      ),
+      backgroundColorAppBar: AppColors.background,
       actionsAppBar: [
         IconButton(
             // ignore: avoid_print
@@ -72,6 +78,7 @@ class _MyDrawerState extends State<MyDrawer> {
             icon: Icon(
               Icons.chat,
               size: 20,
+              color: Colors.white,
             ))
       ],
       backgroundColorMenu: AppColors.cardColor,

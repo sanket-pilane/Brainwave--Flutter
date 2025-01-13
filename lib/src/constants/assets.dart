@@ -7,3 +7,5 @@ const loadingAnimation = 'assets/lottie/loading.json';
 
 const kGoogleLogo = 'assets/images/google.png';
 const kFacebookLogo = 'assets/images/facebook.png';
+
+const kBrainwave = "assets/images/brainwave-symbol.svg";
