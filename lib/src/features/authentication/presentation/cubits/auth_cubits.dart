@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:brainwave/src/features/authentication/domain/entities/app_user.dart';
 import 'package:brainwave/src/features/authentication/domain/repo/auth_repo.dart';
 import 'package:brainwave/src/features/authentication/presentation/cubits/auth_states.dart';
@@ -61,6 +63,7 @@ class AuthCubits extends Cubit<AuthStates> {
 
   Future<void> logout() async {
     authRepo.logout();
+    log("UnAuthenticated Triggered");
     emit(UnAuthenticated());
   }
 

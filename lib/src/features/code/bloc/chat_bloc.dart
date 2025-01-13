@@ -9,7 +9,7 @@ part 'chat_event.dart';
 part 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  ChatBloc() : super(ChatInitial()) {
+  ChatBloc() : super(ChatSuccesState(messages: [])) {
     on<ChatGenerateNewTextMessageEvent>(chatGenerateNewTextMessageEvent);
   }
   List<ChatModel> messages = [];
@@ -19,6 +19,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         ChatModel(role: "user", parts: [ChatPartModel(text: event.prompt)]));
     emit(ChatSuccesState(messages: messages));
 
-    await ChatRepo.ChatGenerateRepo(messages);
+    // await ChatRepo.ChatGenerateRepo(messages);
   }
 }
