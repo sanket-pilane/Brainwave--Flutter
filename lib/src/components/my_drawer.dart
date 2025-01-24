@@ -1,5 +1,6 @@
 import 'package:brainwave/src/constants/colors.dart';
 import 'package:brainwave/src/features/authentication/presentation/cubits/auth_cubits.dart';
+import 'package:brainwave/src/features/chat/presentation/pages/chat_page.dart';
 import 'package:brainwave/src/features/code/presentation/pages/code_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,7 +29,7 @@ class _MyDrawerState extends State<MyDrawer> {
       ScreenHiddenDrawer(
           ItemHiddenMenu(
               name: "Chat", baseStyle: baseStyle, selectedStyle: selectedStyle),
-          CodePage()),
+          ChatPage()),
       ScreenHiddenDrawer(
           ItemHiddenMenu(
               name: "Video",
