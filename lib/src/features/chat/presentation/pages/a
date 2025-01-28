@@ -22,49 +22,33 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   TextEditingController controller = TextEditingController();
   final ChatBloc chatBloc = ChatBloc();
-  final ScrollController _scrollController = ScrollController();
 
-  // Map to manage streams for each message by ID
+  // Map to manage stream controllers for each message
   final Map<int, StreamController<String>> _streamControllers = {};
-  final Map<int, String> _finalizedMessages = {}; // Finalized responses
 
   void _startStream(int messageId, String _response) {
-    // Skip if the message is already finalized
-    if (_finalizedMessages.containsKey(messageId)) return;
-
-    // Ensure we don't recreate the StreamController if it already exists
-    if (!_streamControllers.containsKey(messageId)) {
-      _streamControllers[messageId] = StreamController<String>.broadcast();
+    // Create a new StreamController for the message ID if it doesn't already exist
+    if (_streamControllers.containsKey(messageId)) {
+      // Dispose of the old controller to avoid errors
+      _streamControllers[messageId]!.close();
     }
-
+    _streamControllers[messageId] = StreamController<String>();
     StreamController<String> controller = _streamControllers[messageId]!;
 
+    // Simulate typing effect
     Future.delayed(Duration.zero, () async {
       for (int i = 0; i < _response.length; i++) {
-        await Future.delayed(const Duration(milliseconds: 10)); // Typing effect
+        await Future.delayed(
+            const Duration(milliseconds: 10)); // Simulates typing delay
         controller.add(_response.substring(0, i + 1));
       }
       controller.close(); // Close the stream when done
-      _finalizedMessages[messageId] = _response;
-      _scrollToBottom(); // Save the final content
-    });
-  }
-
-  void _scrollToBottom() {
-    Future.delayed(Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
     });
   }
 
   @override
   void dispose() {
-    // Dispose of all active controllers
+    // Dispose all stream controllers
     for (var controller in _streamControllers.values) {
       controller.close();
     }
@@ -82,7 +66,7 @@ class _ChatPageState extends State<ChatPage> {
           switch (state.runtimeType) {
             case ChatSuccesState:
               List<ChatModel> messages = (state as ChatSuccesState).messages;
-              _scrollToBottom();
+
               return Column(
                 children: [
                   // Expanded ListView for the main content
@@ -108,16 +92,13 @@ class _ChatPageState extends State<ChatPage> {
                             ),
                           )
                         : ListView.builder(
-                            controller: _scrollController,
                             itemCount: messages.length,
                             itemBuilder: (context, index) {
                               final message = messages[index];
                               final isUser = message.role == 'user';
 
-                              // Start streaming for new messages
-                              if (!_finalizedMessages.containsKey(index)) {
-                                _startStream(index, message.parts.first.text);
-                              }
+                              // Start streaming for this message
+                              _startStream(index, message.parts.first.text);
 
                               return Align(
                                 alignment: isUser
@@ -158,12 +139,11 @@ class _ChatPageState extends State<ChatPage> {
                                               vertical: 8.0),
                                           child: SvgPicture.asset(
                                             kBrainwave, // Path to your SVG file in assets
-                                            height: 30,
-                                            width: 30,
+                                            height: 30, // Set height
+                                            width: 30, // Set width
                                           ),
                                         ),
-
-                                      // Display finalized messages or stream new ones
+                                      // StreamBuilder for live updates
                                       isUser
                                           ? Text(
                                               message.parts.first.text,
@@ -174,61 +154,36 @@ class _ChatPageState extends State<ChatPage> {
                                                 fontSize: isUser ? 16 : 14,
                                               ),
                                             )
-                                          : _finalizedMessages
-                                                  .containsKey(index)
-                                              ? MarkdownBody(
-                                                  data: _finalizedMessages[
-                                                      index]!,
-                                                  styleSheet:
-                                                      MarkdownStyleSheet(
-                                                    p: GoogleFonts.lato(
-                                                      fontWeight: isUser
-                                                          ? FontWeight.bold
-                                                          : FontWeight.w400,
-                                                      fontSize:
-                                                          isUser ? 16 : 14,
+                                          : StreamBuilder<String>(
+                                              stream: _streamControllers[index]
+                                                  ?.stream,
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return const Text(
+                                                      "Loading...");
+                                                } else if (snapshot.hasData) {
+                                                  return MarkdownBody(
+                                                    data: snapshot.data!,
+                                                    styleSheet:
+                                                        MarkdownStyleSheet(
+                                                      p: GoogleFonts.lato(
+                                                        fontWeight: isUser
+                                                            ? FontWeight.bold
+                                                            : FontWeight.w400,
+                                                        fontSize:
+                                                            isUser ? 16 : 14,
+                                                      ),
                                                     ),
-                                                  ),
-                                                )
-                                              : StreamBuilder<String>(
-                                                  stream:
-                                                      _streamControllers[index]
-                                                          ?.stream,
-                                                  builder: (context, snapshot) {
-                                                    if (snapshot
-                                                            .connectionState ==
-                                                        ConnectionState
-                                                            .waiting) {
-                                                      return const Text(
-                                                          "Loading...");
-                                                    } else if (snapshot
-                                                        .hasData) {
-                                                      return MarkdownBody(
-                                                        data: snapshot.data!,
-                                                        styleSheet:
-                                                            MarkdownStyleSheet(
-                                                          p: GoogleFonts.lato(
-                                                            fontWeight: isUser
-                                                                ? FontWeight
-                                                                    .bold
-                                                                : FontWeight
-                                                                    .w400,
-                                                            fontSize: isUser
-                                                                ? 16
-                                                                : 14,
-                                                          ),
-                                                        ),
-                                                      );
-                                                    } else if (snapshot
-                                                        .hasError) {
-                                                      return Text(
-                                                          "Error: ${snapshot.error}");
-                                                    } else {
-                                                      return const Text(
-                                                          "Done!");
-                                                    }
-                                                  },
-                                                ),
+                                                  );
+                                                } else if (snapshot.hasError) {
+                                                  return Text(
+                                                      "Error: ${snapshot.error}");
+                                                } else {
+                                                  return const Text("Done!");
+                                                }
+                                              },
+                                            ),
                                     ],
                                   ),
                                 ),
