@@ -1,53 +1,30 @@
-import 'dart:async';
+import 'dart:io';
 
+import 'package:brainwave/src/components/loading.dart';
 import 'package:brainwave/src/constants/assets.dart';
-import 'package:brainwave/src/features/chat/bloc/chat_bloc.dart';
-import 'package:brainwave/src/features/chat/domain/model/chat_model.dart';
-
+import 'package:brainwave/src/features/image/bloc/image_bloc.dart';
+import 'package:brainwave/src/features/image/domain/model/image_model.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
-
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+class ImagePage extends StatefulWidget {
+  const ImagePage({super.key});
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  State<ImagePage> createState() => _ImagePageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ImagePageState extends State<ImagePage> {
   TextEditingController controller = TextEditingController();
-  final ChatBloc chatBloc = ChatBloc();
+  final ImageBloc imageBloc = ImageBloc();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
-  // Map to manage streams for each message by ID
-  final Map<int, StreamController<String>> _streamControllers = {};
-  final Map<int, String> _finalizedMessages = {}; // Finalized responses
-
-  void _startStream(int messageId, String _response) {
-    // Skip if the message is already finalized
-    if (_finalizedMessages.containsKey(messageId)) return;
-
-    // Ensure we don't recreate the StreamController if it already exists
-    if (!_streamControllers.containsKey(messageId)) {
-      _streamControllers[messageId] = StreamController<String>.broadcast();
-    }
-
-    StreamController<String> controller = _streamControllers[messageId]!;
-
-    Future.delayed(Duration.zero, () async {
-      for (int i = 0; i < _response.length; i++) {
-        await Future.delayed(const Duration(milliseconds: 10)); // Typing effect
-        controller.add(_response.substring(0, i + 1));
-      }
-      controller.close(); // Close the stream when done
-      _finalizedMessages[messageId] = _response;
-      _scrollToBottom(); // Save the final content
-    });
-  }
+  final Map<int, String> _finalizedMessages = {};
 
   void _scrollToBottom() {
     Future.delayed(Duration(milliseconds: 100), () {
@@ -61,6 +38,50 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  Future<void> downloadImage(String imageUrl) async {
+    try {
+      // Request storage permission
+      var status = await Permission.storage.request();
+      if (!status.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Permission denied "),
+          ),
+        );
+        return;
+      }
+
+      // Get device's downloads directory
+
+      String downloadPath;
+      if (Platform.isAndroid) {
+        // For Android 10 (API 29) and above
+        downloadPath = '/storage/emulated/0/Download'; // Direct Downloads path
+      } else if (Platform.isIOS) {
+        // For iOS, saving in app's documents or use a share sheet
+        downloadPath = (await getApplicationDocumentsDirectory()).path;
+      } else {
+        // Handle other platforms if necessary
+        downloadPath = '/path/to/your/target/directory';
+      }
+
+      String filePath = '$downloadPath/image.jpg';
+      Dio dio = Dio();
+      await dio.download(imageUrl, filePath);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Image downloaded $filePath"),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Download failed: $e"),
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,10 +93,8 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     // Dispose of all active controllers
-    for (var controller in _streamControllers.values) {
-      controller.close();
-    }
-    chatBloc.close();
+
+    imageBloc.close();
     _focusNode.dispose();
     super.dispose();
   }
@@ -83,13 +102,14 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<ChatBloc, ChatState>(
-        bloc: chatBloc,
+      body: BlocConsumer<ImageBloc, ImageState>(
+        bloc: imageBloc,
         listener: (context, state) {},
         builder: (context, state) {
           switch (state.runtimeType) {
-            case ChatSuccesState:
-              List<ChatModel> messages = (state as ChatSuccesState).messages;
+            case ImageSuccessState:
+              List<ImageModel> messages = (state as ImageSuccessState).messages;
+
               _scrollToBottom();
               return Column(
                 children: [
@@ -121,11 +141,6 @@ class _ChatPageState extends State<ChatPage> {
                             itemBuilder: (context, index) {
                               final message = messages[index];
                               final isUser = message.role == 'user';
-
-                              // Start streaming for new messages
-                              if (!_finalizedMessages.containsKey(index)) {
-                                _startStream(index, message.parts.first.text);
-                              }
 
                               return Align(
                                 alignment: isUser
@@ -174,7 +189,7 @@ class _ChatPageState extends State<ChatPage> {
                                       // Display finalized messages or stream new ones
                                       isUser
                                           ? Text(
-                                              message.parts.first.text,
+                                              message.text,
                                               style: GoogleFonts.lato(
                                                 fontWeight: isUser
                                                     ? FontWeight.w600
@@ -184,61 +199,86 @@ class _ChatPageState extends State<ChatPage> {
                                             )
                                           : _finalizedMessages
                                                   .containsKey(index)
-                                              // ? Text(_finalizedMessages[index]!)
-                                              ? MarkdownBody(
-                                                  shrinkWrap: true,
-                                                  data: _finalizedMessages[
-                                                      index]!,
-                                                  styleSheet:
-                                                      MarkdownStyleSheet(
-                                                    p: GoogleFonts.lato(
-                                                      fontWeight: isUser
-                                                          ? FontWeight.w600
-                                                          : FontWeight.w400,
-                                                      fontSize:
-                                                          isUser ? 16 : 14,
+                                              ? Column(
+                                                  children: [
+                                                    IconButton(
+                                                      icon: Icon(Icons.download,
+                                                          color: Colors.white),
+                                                      onPressed: () =>
+                                                          downloadImage(
+                                                              message.text),
                                                     ),
-                                                  ),
+                                                    Image.network(
+                                                      _finalizedMessages[
+                                                          index]!,
+                                                      loadingBuilder: (context,
+                                                          child,
+                                                          loadingProgress) {
+                                                        if (loadingProgress ==
+                                                            null) return child;
+                                                        return Center(
+                                                          child: LoadingPage(),
+                                                        );
+                                                      },
+                                                      errorBuilder: (context,
+                                                              error,
+                                                              stackTrace) =>
+                                                          const Text(
+                                                              "Failed to load image"),
+                                                    ),
+                                                  ],
                                                 )
-                                              : StreamBuilder<String>(
-                                                  stream:
-                                                      _streamControllers[index]
-                                                          ?.stream,
-                                                  builder: (context, snapshot) {
-                                                    if (snapshot
-                                                            .connectionState ==
-                                                        ConnectionState
-                                                            .waiting) {
-                                                      return const Text(
-                                                          "Loading...");
-                                                    } else if (snapshot
-                                                        .hasData) {
-                                                      return MarkdownBody(
-                                                        shrinkWrap: true,
-                                                        data: snapshot.data!,
-                                                        styleSheet:
-                                                            MarkdownStyleSheet(
-                                                          p: GoogleFonts.lato(
-                                                            fontWeight: isUser
-                                                                ? FontWeight
-                                                                    .bold
-                                                                : FontWeight
-                                                                    .w400,
-                                                            fontSize: isUser
-                                                                ? 16
-                                                                : 14,
-                                                          ),
+                                              : Stack(
+                                                  children: [
+                                                    Image.network(
+                                                      message.text,
+                                                      loadingBuilder: (context,
+                                                          child,
+                                                          loadingProgress) {
+                                                        if (loadingProgress ==
+                                                            null) return child;
+                                                        return Center(
+                                                          child: LoadingPage(),
+                                                        );
+                                                      },
+                                                      errorBuilder: (context,
+                                                              error,
+                                                              stackTrace) =>
+                                                          const Text(
+                                                              "Failed to load image"),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 4.0,
+                                                          vertical: 4),
+                                                      child: Container(
+                                                        width: 40,
+                                                        padding:
+                                                            EdgeInsets.zero,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                                color: Colors
+                                                                    .black
+                                                                    .withOpacity(
+                                                                        0.5)),
+                                                        child: IconButton(
+                                                          padding:
+                                                              EdgeInsets.zero,
+                                                          icon: Icon(
+                                                              size: 20,
+                                                              Icons.download,
+                                                              color:
+                                                                  Colors.white),
+                                                          onPressed: () =>
+                                                              downloadImage(
+                                                                  message.text),
                                                         ),
-                                                      );
-                                                    } else if (snapshot
-                                                        .hasError) {
-                                                      return Text(
-                                                          "Error: ${snapshot.error}");
-                                                    } else {
-                                                      return const Text(
-                                                          "Done!");
-                                                    }
-                                                  },
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                     ],
                                   ),
@@ -299,8 +339,12 @@ class _ChatPageState extends State<ChatPage> {
                               if (controller.text.isNotEmpty) {
                                 String text = controller.text;
                                 controller.clear();
-                                chatBloc.add(ChatGenerateNewTextMessageEvent(
-                                    prompt: text));
+                                setState(() {
+                                  _finalizedMessages[
+                                      _finalizedMessages.length] = 'loading';
+                                });
+                                imageBloc
+                                    .add(ImageGeneratedEvent(prompt: text));
                               }
                             },
                           ),
@@ -312,7 +356,7 @@ class _ChatPageState extends State<ChatPage> {
               );
 
             default:
-              return const SizedBox();
+              return const Text("Hello ");
           }
         },
       ),

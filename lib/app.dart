@@ -1,15 +1,8 @@
-import 'dart:developer';
-
 import 'package:brainwave/authnavigator.dart';
-import 'package:brainwave/home_page.dart';
-import 'package:brainwave/src/components/my_drawer.dart';
+
 import 'package:brainwave/src/constants/colors.dart';
 import 'package:brainwave/src/features/authentication/data/firebase_auth_repo.dart';
-import 'package:brainwave/src/features/authentication/domain/repo/auth_repo.dart';
 import 'package:brainwave/src/features/authentication/presentation/cubits/auth_cubits.dart';
-import 'package:brainwave/src/features/authentication/presentation/cubits/auth_states.dart';
-import 'package:brainwave/src/features/authentication/presentation/pages/auth_page.dart';
-import 'package:brainwave/src/features/on_boarding/presentation/on_onboarding.dart';
 // Import your home page
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

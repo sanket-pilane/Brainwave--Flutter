@@ -33,7 +33,7 @@ migrate_working_dir/
 
 # Symbolication related
 app.*.symbols
-
+.env
 # Obfuscation related
 app.*.map.json
 
@@ -43,4 +43,4 @@ app.*.map.json
 /android/app/release
 
 
-lib/firebase_options.dart
+lib/firebase_options.dart.env

@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:brainwave/src/features/code/domain/model/chat_model.dart';
+import 'package:brainwave/src/features/chat/domain/model/chat_model.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 

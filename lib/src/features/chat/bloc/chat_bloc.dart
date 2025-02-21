@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
-import 'package:brainwave/src/features/code/domain/model/chat_model.dart';
-import 'package:brainwave/src/features/code/domain/repos/chatrepo.dart';
+import 'package:brainwave/src/features/chat/domain/model/chat_model.dart';
+import 'package:brainwave/src/features/chat/domain/repos/chatrepo.dart';
 import 'package:meta/meta.dart';
 
 part 'chat_event.dart';

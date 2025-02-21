@@ -1,4 +1,5 @@
 import 'package:brainwave/src/constants/assets.dart';
+import 'package:brainwave/src/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -8,9 +9,9 @@ class LoadingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade700,
+      backgroundColor: AppColors.background,
       body: Center(
-        child: Lottie.asset(loadingAnimation),
+        child: Lottie.asset(loadingAnimation2),
       ),
     );
   }

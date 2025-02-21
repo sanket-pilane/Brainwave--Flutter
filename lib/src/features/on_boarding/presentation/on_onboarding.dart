@@ -1,6 +1,4 @@
-import 'package:brainwave/home_page.dart';
 import 'package:brainwave/src/features/authentication/presentation/pages/auth_page.dart';
-import 'package:brainwave/src/features/authentication/presentation/pages/sign_up.dart';
 import 'package:brainwave/src/features/on_boarding/presentation/intro_page1.dart';
 import 'package:brainwave/src/features/on_boarding/presentation/intro_page2.dart';
 import 'package:brainwave/src/features/on_boarding/presentation/intro_page3.dart';
@@ -8,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class OnOnboarding extends StatefulWidget {
-  const OnOnboarding({super.key});
+  final VoidCallback onFinish;
+  const OnOnboarding({super.key, required this.onFinish});
 
   @override
   State<OnOnboarding> createState() => _OnOnboardingState();
@@ -64,6 +63,7 @@ class _OnOnboardingState extends State<OnOnboarding> {
                 onLastPage
                     ? GestureDetector(
                         onTap: () {
+                          widget.onFinish();
                           Navigator.push(
                               context,
                               MaterialPageRoute(

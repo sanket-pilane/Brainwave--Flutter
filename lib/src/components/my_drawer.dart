@@ -1,7 +1,10 @@
+import 'package:brainwave/src/components/user_profile.dart';
+import 'package:brainwave/src/constants/assets.dart';
 import 'package:brainwave/src/constants/colors.dart';
 import 'package:brainwave/src/features/authentication/presentation/cubits/auth_cubits.dart';
 import 'package:brainwave/src/features/chat/presentation/pages/chat_page.dart';
 import 'package:brainwave/src/features/code/presentation/pages/code_page.dart';
+import 'package:brainwave/src/features/image/presentation/image_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hidden_drawer_menu/hidden_drawer_menu.dart';
@@ -32,6 +35,16 @@ class _MyDrawerState extends State<MyDrawer> {
           ChatPage()),
       ScreenHiddenDrawer(
           ItemHiddenMenu(
+              name: "Code", baseStyle: baseStyle, selectedStyle: selectedStyle),
+          CodePage()),
+      ScreenHiddenDrawer(
+          ItemHiddenMenu(
+              name: "Image",
+              baseStyle: baseStyle,
+              selectedStyle: selectedStyle),
+          ImagePage()),
+      ScreenHiddenDrawer(
+          ItemHiddenMenu(
               name: "Video",
               baseStyle: baseStyle,
               selectedStyle: selectedStyle),
@@ -44,14 +57,8 @@ class _MyDrawerState extends State<MyDrawer> {
           CodePage()),
       ScreenHiddenDrawer(
           ItemHiddenMenu(
-              name: "Image",
-              baseStyle: baseStyle,
-              selectedStyle: selectedStyle),
-          CodePage()),
-      ScreenHiddenDrawer(
-          ItemHiddenMenu(
-              name: "Code", baseStyle: baseStyle, selectedStyle: selectedStyle),
-          CodePage()),
+              name: "User", baseStyle: baseStyle, selectedStyle: selectedStyle),
+          UserProfilePage()),
     ];
   }
 
@@ -85,6 +92,9 @@ class _MyDrawerState extends State<MyDrawer> {
       backgroundColorMenu: AppColors.cardColor,
       screens: _pages,
       initPositionSelected: 0,
+      enableCornerAnimation: true,
+      enableScaleAnimation: true,
+      curveAnimation: Curves.bounceInOut,
     );
   }
 }

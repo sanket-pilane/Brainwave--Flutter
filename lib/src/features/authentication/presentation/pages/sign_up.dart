@@ -1,10 +1,8 @@
-import 'package:brainwave/home_page.dart';
 import 'package:brainwave/src/components/my_button.dart';
 import 'package:brainwave/src/components/my_textfields.dart';
 import 'package:brainwave/src/components/text_tile.dart';
 import 'package:brainwave/src/constants/assets.dart';
 import 'package:brainwave/src/features/authentication/presentation/cubits/auth_cubits.dart';
-import 'package:brainwave/src/features/authentication/presentation/pages/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
