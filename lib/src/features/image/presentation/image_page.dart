@@ -318,7 +318,7 @@ class _ImagePageState extends State<ImagePage> {
                               controller: controller,
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.only(left: 10),
-                                hintText: "Ask Gemini",
+                                hintText: "Ask Brainwave",
                                 hintStyle: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 14,
@@ -337,6 +337,7 @@ class _ImagePageState extends State<ImagePage> {
                             icon: const Icon(Icons.send, color: Colors.white),
                             onPressed: () {
                               if (controller.text.isNotEmpty) {
+                                FocusScope.of(context).unfocus();
                                 String text = controller.text;
                                 controller.clear();
                                 setState(() {

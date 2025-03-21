@@ -326,12 +326,6 @@ class _VideoPageState extends State<VideoPage> {
                                             color: Colors.white,
                                           ),
                                         )
-                                      else if (!isUser &&
-                                          !_finalizedMessages
-                                              .containsKey(index))
-                                        Center(
-                                          child: Lottie.asset(loadingAnimation),
-                                        )
                                       else if (_finalizedMessages
                                               .containsKey(index) &&
                                           !(_isLoading[index] ?? true))
@@ -381,7 +375,7 @@ class _VideoPageState extends State<VideoPage> {
                               controller: controller,
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.only(left: 10),
-                                hintText: "Ask Gemini",
+                                hintText: "Ask Brainwave",
                                 hintStyle: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 14,
@@ -400,6 +394,7 @@ class _VideoPageState extends State<VideoPage> {
                             icon: const Icon(Icons.send, color: Colors.white),
                             onPressed: () {
                               if (controller.text.isNotEmpty) {
+                                FocusScope.of(context).unfocus();
                                 String text = controller.text;
                                 controller.clear();
                                 videoBloc

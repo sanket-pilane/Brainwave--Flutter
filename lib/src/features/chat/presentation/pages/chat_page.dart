@@ -297,6 +297,7 @@ class _ChatPageState extends State<ChatPage> {
                             icon: const Icon(Icons.send, color: Colors.white),
                             onPressed: () {
                               if (controller.text.isNotEmpty) {
+                                FocusScope.of(context).unfocus();
                                 String text = controller.text;
                                 controller.clear();
                                 chatBloc.add(ChatGenerateNewTextMessageEvent(
