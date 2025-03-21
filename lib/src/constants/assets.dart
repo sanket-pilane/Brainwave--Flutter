@@ -9,5 +9,6 @@ const userProfile = 'assets/lottie/user_profile.json';
 
 const kGoogleLogo = 'assets/images/google.png';
 const kFacebookLogo = 'assets/images/facebook.png';
+const kVideo = 'assets/video/video.mp4';
 
 const kBrainwave = "assets/images/brainwave-symbol.svg";
