@@ -28,7 +28,7 @@ class _CodePageState extends State<CodePage> {
   // Map to manage streams for each message by ID
   final Map<int, StreamController<String>> _streamControllers = {};
   final Map<int, String> _finalizedMessages = {}; // Finalized responses
-
+  final FocusNode _focusNode = FocusNode();
   void _startStream(int messageId, String _response) {
     // Skip if the message is already finalized
     if (_finalizedMessages.containsKey(messageId)) return;
@@ -64,12 +64,19 @@ class _CodePageState extends State<CodePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _focusNode.requestFocus();
+  }
+
+  @override
   void dispose() {
     // Dispose of all active controllers
     for (var controller in _streamControllers.values) {
       controller.close();
     }
     codeBloc.close();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -220,43 +227,64 @@ class _CodePageState extends State<CodePage> {
                   ),
 
                   // Fixed TextField at the bottom
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    color: Colors.black,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            style: const TextStyle(
-                              color: Colors.white,
-                            ),
-                            controller: controller,
-                            decoration: InputDecoration(
-                              hintText: "Ask Brainwave",
-                              hintStyle: const TextStyle(color: Colors.grey),
-                              filled: true,
-                              fillColor: Colors.grey[900],
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(25),
-                                borderSide: BorderSide.none,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(50),
+                          border: Border.all(
+                            color: Colors.grey.shade600,
+                          )),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(
+                            kBrainwave,
+                            width: 30,
+                          ),
+                          Expanded(
+                            child: TextField(
+                              focusNode: _focusNode,
+                              style: const TextStyle(
+                                color: Colors.white,
+                              ),
+                              maxLines: null,
+                              cursorColor: Colors.grey,
+                              controller: controller,
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.only(left: 10),
+                                hintText: "Ask Brainwave",
+                                hintStyle: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                ),
+                                filled: true,
+                                fillColor: Colors.transparent,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                  borderSide: BorderSide.none,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.send, color: Colors.white),
-                          onPressed: () {
-                            if (controller.text.isNotEmpty) {
-                              String text = controller.text;
-                              controller.clear();
-                              codeBloc.add(CodeGenerateNewTextMessageEvent(
-                                  prompt: text));
-                            }
-                          },
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.send, color: Colors.white),
+                            onPressed: () {
+                              if (controller.text.isNotEmpty) {
+                                FocusScope.of(context).unfocus();
+                                String text = controller.text;
+                                controller.clear();
+                                codeBloc.add(CodeGenerateNewTextMessageEvent(
+                                    prompt: text));
+                              }
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
