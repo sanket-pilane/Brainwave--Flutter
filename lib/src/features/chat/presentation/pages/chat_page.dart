@@ -278,7 +278,7 @@ class _ChatPageState extends State<ChatPage> {
                               controller: controller,
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.only(left: 10),
-                                hintText: "Ask Gemini",
+                                hintText: "Ask Brainwave",
                                 hintStyle: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 14,

@@ -233,7 +233,7 @@ class _CodePageState extends State<CodePage> {
                             ),
                             controller: controller,
                             decoration: InputDecoration(
-                              hintText: "Ask Gemini",
+                              hintText: "Ask Brainwave",
                               hintStyle: const TextStyle(color: Colors.grey),
                               filled: true,
                               fillColor: Colors.grey[900],
