@@ -80,7 +80,7 @@ class _MyDrawerState extends State<MyDrawer> {
             // ignore: avoid_print
             onPressed: () => signOut(),
             icon: Icon(
-              Icons.chat,
+              Icons.exit_to_app_outlined,
               size: 20,
               color: Colors.white,
             ))
