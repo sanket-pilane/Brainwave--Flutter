@@ -23,14 +23,11 @@ class VideoBloc extends Bloc<VideoEvent, VideoState> {
     emit(VideoSuccessState(messages: List.from(messages)));
 
     try {
-      // String outputUrl = await VideoRepo.VideoGenerateRepo(event.prompt);
-      // print(outputUrl);
-      // if (outputUrl.isNotEmpty) {
-      messages.add(VideoModel(
-          role: "model",
-          text:
-              "https://replicate.delivery/czjl/0BRwO64eE5xCNCunM61wjfjaozXEm6ee2fpbldrwj6fxxVO9E/tmpxql776w8.output.mp4"));
-      // }
+      String outputUrl = await VideoRepo.VideoGenerateRepo(event.prompt);
+      print(outputUrl);
+      if (outputUrl.isNotEmpty) {
+        messages.add(VideoModel(role: "model", text: outputUrl));
+      }
 
       emit(VideoSuccessState(messages: List.from(messages)));
     } catch (e) {
