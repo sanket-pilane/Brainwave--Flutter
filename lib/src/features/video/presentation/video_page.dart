@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:brainwave/src/components/loading.dart';
 import 'package:brainwave/src/constants/assets.dart';
 import 'package:brainwave/src/features/video/bloc/video_bloc.dart';
+import 'package:brainwave/src/features/video/bloc/video_state.dart';
 import 'package:brainwave/src/features/video/domain/model/video_model.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -29,10 +31,19 @@ class _VideoPageState extends State<VideoPage> {
   final Map<int, String> _finalizedMessages = {};
   final Map<int, VideoPlayerController> _videoControllers = {};
   final Map<int, bool> _isPlaying = {};
-  // Add a map to track loading state
+  // Map to track loading state
   final Map<int, bool> _isLoading = {};
-  // Add a map to track error state
+  // Map to track error state
   final Map<int, bool> _hasError = {};
+  // Map to track generation progress
+  final Map<int, double> _generationProgress = {};
+  // Map to track if we're in the loading animation phase
+  final Map<int, bool> _showLoadingAnimation = {};
+
+  // Define a constant for the loading animation asset
+
+  // Generation time in seconds (2m36s = 156s)
+  final int generationTimeInSeconds = 210;
 
   // Test URL for development
   final String testVideoUrl =
@@ -93,6 +104,43 @@ class _VideoPageState extends State<VideoPage> {
         });
       }
     }
+  }
+
+  // Function to simulate video generation with a progress bar
+  void _simulateVideoGeneration(int index) {
+    // Initialize progress to 0
+    setState(() {
+      _showLoadingAnimation[index] = true;
+      _generationProgress[index] = 0.0;
+    });
+
+    // Create a timer that updates progress every second
+    int elapsedSeconds = 0;
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      elapsedSeconds++;
+      double progress = elapsedSeconds / generationTimeInSeconds;
+
+      // Update progress state
+      setState(() {
+        _generationProgress[index] = progress > 1.0 ? 1.0 : progress;
+      });
+
+      // When time is up, cancel timer and initialize the video player
+      if (elapsedSeconds >= generationTimeInSeconds) {
+        timer.cancel();
+        setState(() {
+          _showLoadingAnimation[index] = false;
+        });
+        if (_finalizedMessages.containsKey(index)) {
+          _initializeVideoController(index, _finalizedMessages[index]!);
+        }
+      }
+    });
   }
 
   void _playPause(int index) {
@@ -227,10 +275,12 @@ class _VideoPageState extends State<VideoPage> {
               if (message.role != 'user' &&
                   !_finalizedMessages.containsKey(i)) {
                 // For testing, use the test URL
-                final videoUrl = message
-                    .text; // Use test URL instead of message.text for testing
+                final videoUrl =
+                    message.text; // Use message.text for production
                 _finalizedMessages[i] = videoUrl;
-                _initializeVideoController(i, videoUrl);
+
+                // Start the loading animation and progress bar instead of immediately initializing the video
+                _simulateVideoGeneration(i);
               }
             }
             _scrollToBottom();
@@ -328,6 +378,11 @@ class _VideoPageState extends State<VideoPage> {
                                         )
                                       else if (_finalizedMessages
                                               .containsKey(index) &&
+                                          (_showLoadingAnimation[index] ??
+                                              false))
+                                        _buildLoadingAnimation(index)
+                                      else if (_finalizedMessages
+                                              .containsKey(index) &&
                                           !(_isLoading[index] ?? true))
                                         _buildVideoPlayer(
                                             index, _finalizedMessages[index]!)
@@ -415,6 +470,90 @@ class _VideoPageState extends State<VideoPage> {
         },
       ),
     );
+  }
+
+  // New method to build the loading animation with progress bar
+  Widget _buildLoadingAnimation(int index) {
+    final progress = _generationProgress[index] ?? 0.0;
+    final percentComplete = (progress * 100).toInt();
+
+    return Container(
+      width: 260,
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Lottie animation
+          SizedBox(
+            height: 150,
+            width: 150,
+            child: Lottie.asset(
+              loadingAnimation2,
+              fit: BoxFit.contain,
+            ),
+          ),
+
+          SizedBox(height: 16),
+
+          // Text showing what's happening
+          Text(
+            "Generating your video...",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+
+          SizedBox(height: 12),
+
+          // Progress bar
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: Colors.grey.shade800,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+          ),
+
+          SizedBox(height: 8),
+
+          // Percentage text
+          Text(
+            "$percentComplete% complete",
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+            ),
+          ),
+
+          SizedBox(height: 8),
+
+          // Estimated time remaining
+          Text(
+            "Estimated time remaining: ${_formatRemainingTime(progress)}",
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to format remaining time
+  String _formatRemainingTime(double progress) {
+    if (progress >= 1.0) return "Complete";
+
+    final remainingSeconds =
+        (generationTimeInSeconds * (1.0 - progress)).toInt();
+    final minutes = remainingSeconds ~/ 60;
+    final seconds = remainingSeconds % 60;
+
+    return "$minutes:${seconds.toString().padLeft(2, '0')}";
   }
 
   Widget _buildVideoPlayer(int index, String videoUrl) {

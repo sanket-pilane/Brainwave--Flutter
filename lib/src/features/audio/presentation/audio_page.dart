@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async'; // Added for Timer
 import 'package:brainwave/src/constants/assets.dart';
 import 'package:brainwave/src/features/audio/bloc/audio_bloc.dart';
 import 'package:brainwave/src/features/audio/domain/model/audio_model.dart';
@@ -36,6 +37,9 @@ class _AudioPageState extends State<AudioPage> {
   final Map<int, Duration> _currentPositions =
       {}; // Track current audio positions
   final Map<int, Duration> _totalDurations = {}; // Track total audio durations
+  final Map<int, bool> _showLoadingAnimation =
+      {}; // Track if showing loading animation
+  final Map<int, Timer?> _loadingTimers = {}; // Track loading timers
 
   // Test URL for development
   final String testAudioUrl =
@@ -160,6 +164,28 @@ class _AudioPageState extends State<AudioPage> {
     }
   }
 
+  // Start 15-second loading timer for a message
+  void _startLoadingTimer(int index, String audioUrl) {
+    // Cancel any existing timer
+    _loadingTimers[index]?.cancel();
+
+    // Set loading animation state
+    setState(() {
+      _showLoadingAnimation[index] = true;
+    });
+
+    // Start a new 15-second timer
+    _loadingTimers[index] = Timer(Duration(seconds: 9), () {
+      if (mounted) {
+        setState(() {
+          _showLoadingAnimation[index] = false;
+        });
+        // Initialize audio player after the loading animation completes
+        _initializeAudioPlayer(index, audioUrl);
+      }
+    });
+  }
+
   Future<void> downloadAudio(String audioUrl) async {
     try {
       // Request storage permission
@@ -238,6 +264,12 @@ class _AudioPageState extends State<AudioPage> {
 
   @override
   void dispose() {
+    // Cancel all timers
+    for (var timer in _loadingTimers.values) {
+      timer?.cancel();
+    }
+    _loadingTimers.clear();
+
     // Dispose of all audio players
     for (var player in _audioPlayers.values) {
       player.dispose();
@@ -267,7 +299,9 @@ class _AudioPageState extends State<AudioPage> {
                 final audioUrl =
                     message.text; // Use the message text as audio URL
                 _finalizedMessages[i] = audioUrl;
-                _initializeAudioPlayer(i, audioUrl);
+
+                // Start the 15-second loading animation before initializing audio player
+                _startLoadingTimer(i, audioUrl);
               }
             }
             _scrollToBottom();
@@ -354,6 +388,7 @@ class _AudioPageState extends State<AudioPage> {
                                         ),
 
                                       // Display user messages or Audios
+                                      // Display user messages or Audios
                                       if (isUser)
                                         Text(
                                           message.text,
@@ -363,11 +398,13 @@ class _AudioPageState extends State<AudioPage> {
                                             color: Colors.white,
                                           ),
                                         )
-                                      else if (!isUser &&
-                                          !_finalizedMessages
-                                              .containsKey(index))
+                                      else if (_finalizedMessages
+                                              .containsKey(index) &&
+                                          (_showLoadingAnimation[index] ??
+                                              false))
                                         Center(
-                                          child: Lottie.asset(loadingAnimation),
+                                          child:
+                                              Lottie.asset(loadingAnimation2),
                                         )
                                       else if (_finalizedMessages
                                               .containsKey(index) &&

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:brainwave/src/components/loading.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -26,6 +28,19 @@ class _ImagePageState extends State<ImagePage> {
   final FocusNode _focusNode = FocusNode();
   final Map<int, String> _finalizedMessages = {};
 
+  // Map to track loading state
+  final Map<int, bool> _isLoading = {};
+  // Map to track generation progress
+  final Map<int, double> _generationProgress = {};
+  // Map to track if we're in the loading animation phase
+  final Map<int, bool> _showLoadingAnimation = {};
+
+  // Define a constant for the loading animation asset
+  // Update this path
+
+  // Generation time in seconds
+  final int generationTimeInSeconds = 6; // 6 seconds as requested
+
   void _scrollToBottom() {
     Future.delayed(Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
@@ -34,6 +49,42 @@ class _ImagePageState extends State<ImagePage> {
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
+      }
+    });
+  }
+
+  // Function to simulate image generation with a progress bar
+  void _simulateImageGeneration(int index, String imageUrl) {
+    // Initialize progress to 0
+    setState(() {
+      _showLoadingAnimation[index] = true;
+      _generationProgress[index] = 0.0;
+      _finalizedMessages[index] = imageUrl;
+    });
+
+    // Create a timer that updates progress every 100ms for smoother progress bar
+    int elapsedMilliseconds = 0;
+    int totalMilliseconds = generationTimeInSeconds * 1000;
+    Timer.periodic(Duration(milliseconds: 100), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      elapsedMilliseconds += 100;
+      double progress = elapsedMilliseconds / totalMilliseconds;
+
+      // Update progress state
+      setState(() {
+        _generationProgress[index] = progress > 1.0 ? 1.0 : progress;
+      });
+
+      // When time is up, cancel timer and show the image
+      if (elapsedMilliseconds >= totalMilliseconds) {
+        timer.cancel();
+        setState(() {
+          _showLoadingAnimation[index] = false;
+        });
       }
     });
   }
@@ -52,7 +103,6 @@ class _ImagePageState extends State<ImagePage> {
       }
 
       // Get device's downloads directory
-
       String downloadPath;
       if (Platform.isAndroid) {
         // For Android 10 (API 29) and above
@@ -65,18 +115,27 @@ class _ImagePageState extends State<ImagePage> {
         downloadPath = '/path/to/your/target/directory';
       }
 
-      String filePath = '$downloadPath/image.jpg';
+      // Generate a file name based on timestamp
+      String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      String fileExtension = imageUrl.split('.').last.split('?').first;
+      if (fileExtension.length > 5)
+        fileExtension = 'jpg'; // Default to jpg if extension is weird
+
+      String filePath = '$downloadPath/image_$timestamp.$fileExtension';
+
       Dio dio = Dio();
       await dio.download(imageUrl, filePath);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Image downloaded $filePath"),
+          content: Text("Image downloaded to $filePath"),
+          duration: Duration(seconds: 3),
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Download failed: $e"),
+          duration: Duration(seconds: 3),
         ),
       );
     }
@@ -93,9 +152,10 @@ class _ImagePageState extends State<ImagePage> {
   @override
   void dispose() {
     // Dispose of all active controllers
-
     imageBloc.close();
     _focusNode.dispose();
+    controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -104,7 +164,22 @@ class _ImagePageState extends State<ImagePage> {
     return Scaffold(
       body: BlocConsumer<ImageBloc, ImageState>(
         bloc: imageBloc,
-        listener: (context, state) {},
+        listener: (context, state) {
+          if (state is ImageSuccessState) {
+            List<ImageModel> messages = state.messages;
+
+            // Find the last non-user message that might need processing
+            for (int i = 0; i < messages.length; i++) {
+              final message = messages[i];
+              if (message.role != 'user' &&
+                  !_finalizedMessages.containsKey(i)) {
+                // Start the loading animation for this new image
+                _simulateImageGeneration(i, message.text);
+              }
+            }
+            _scrollToBottom();
+          }
+        },
         builder: (context, state) {
           switch (state.runtimeType) {
             case ImageSuccessState:
@@ -186,7 +261,7 @@ class _ImagePageState extends State<ImagePage> {
                                           ),
                                         ),
 
-                                      // Display finalized messages or stream new ones
+                                      // Display user messages or images with proper loading state
                                       isUser
                                           ? Text(
                                               message.text,
@@ -195,91 +270,86 @@ class _ImagePageState extends State<ImagePage> {
                                                     ? FontWeight.w600
                                                     : FontWeight.w400,
                                                 fontSize: isUser ? 16 : 14,
+                                                color: Colors.white,
                                               ),
                                             )
                                           : _finalizedMessages
-                                                  .containsKey(index)
-                                              ? Column(
-                                                  children: [
-                                                    IconButton(
-                                                      icon: Icon(Icons.download,
-                                                          color: Colors.white),
-                                                      onPressed: () =>
-                                                          downloadImage(
-                                                              message.text),
-                                                    ),
-                                                    Image.network(
-                                                      _finalizedMessages[
-                                                          index]!,
-                                                      loadingBuilder: (context,
-                                                          child,
-                                                          loadingProgress) {
-                                                        if (loadingProgress ==
-                                                            null) return child;
-                                                        return Center(
-                                                          child: LoadingPage(),
-                                                        );
-                                                      },
-                                                      errorBuilder: (context,
-                                                              error,
-                                                              stackTrace) =>
-                                                          const Text(
-                                                              "Failed to load image"),
-                                                    ),
-                                                  ],
-                                                )
-                                              : Stack(
-                                                  children: [
-                                                    Image.network(
-                                                      message.text,
-                                                      loadingBuilder: (context,
-                                                          child,
-                                                          loadingProgress) {
-                                                        if (loadingProgress ==
-                                                            null) return child;
-                                                        return Center(
-                                                          child: LoadingPage(),
-                                                        );
-                                                      },
-                                                      errorBuilder: (context,
-                                                              error,
-                                                              stackTrace) =>
-                                                          const Text(
-                                                              "Failed to load image"),
-                                                    ),
-                                                    Padding(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 4.0,
-                                                          vertical: 4),
-                                                      child: Container(
-                                                        width: 40,
-                                                        padding:
-                                                            EdgeInsets.zero,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                color: Colors
-                                                                    .black
-                                                                    .withOpacity(
-                                                                        0.5)),
-                                                        child: IconButton(
-                                                          padding:
-                                                              EdgeInsets.zero,
-                                                          icon: Icon(
-                                                              size: 20,
-                                                              Icons.download,
-                                                              color:
-                                                                  Colors.white),
-                                                          onPressed: () =>
-                                                              downloadImage(
-                                                                  message.text),
+                                                      .containsKey(index) &&
+                                                  (_showLoadingAnimation[
+                                                          index] ??
+                                                      false)
+                                              ? _buildLoadingAnimation(index)
+                                              : _finalizedMessages
+                                                      .containsKey(index)
+                                                  ? Column(
+                                                      children: [
+                                                        Stack(
+                                                          children: [
+                                                            Image.network(
+                                                              _finalizedMessages[
+                                                                  index]!,
+                                                              loadingBuilder:
+                                                                  (context,
+                                                                      child,
+                                                                      loadingProgress) {
+                                                                if (loadingProgress ==
+                                                                    null)
+                                                                  return child;
+                                                                return Center(
+                                                                  child:
+                                                                      LoadingPage(),
+                                                                );
+                                                              },
+                                                              errorBuilder: (context,
+                                                                      error,
+                                                                      stackTrace) =>
+                                                                  const Text(
+                                                                      "Failed to load image",
+                                                                      style: TextStyle(
+                                                                          color:
+                                                                              Colors.white)),
+                                                            ),
+                                                            Positioned(
+                                                              top: 8,
+                                                              right: 8,
+                                                              child: Container(
+                                                                width: 36,
+                                                                height: 36,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  shape: BoxShape
+                                                                      .circle,
+                                                                  color: Colors
+                                                                      .black
+                                                                      .withOpacity(
+                                                                          0.6),
+                                                                ),
+                                                                child:
+                                                                    IconButton(
+                                                                  padding:
+                                                                      EdgeInsets
+                                                                          .zero,
+                                                                  icon: Icon(
+                                                                    Icons
+                                                                        .download,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    size: 20,
+                                                                  ),
+                                                                  onPressed: () =>
+                                                                      downloadImage(
+                                                                          _finalizedMessages[
+                                                                              index]!),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ),
+                                                      ],
+                                                    )
+                                                  : Center(
+                                                      child: LoadingPage(),
                                                     ),
-                                                  ],
-                                                ),
                                     ],
                                   ),
                                 ),
@@ -290,7 +360,8 @@ class _ImagePageState extends State<ImagePage> {
 
                   // Fixed TextField at the bottom
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 12.0),
                     child: Container(
                       decoration: BoxDecoration(
                           color: Colors.transparent,
@@ -340,10 +411,6 @@ class _ImagePageState extends State<ImagePage> {
                                 FocusScope.of(context).unfocus();
                                 String text = controller.text;
                                 controller.clear();
-                                setState(() {
-                                  _finalizedMessages[
-                                      _finalizedMessages.length] = 'loading';
-                                });
                                 imageBloc
                                     .add(ImageGeneratedEvent(prompt: text));
                               }
@@ -357,10 +424,93 @@ class _ImagePageState extends State<ImagePage> {
               );
 
             default:
-              return const Text("Hello ");
+              return const Center(child: CircularProgressIndicator());
           }
         },
       ),
     );
+  }
+
+  // New method to build the loading animation with progress bar
+  Widget _buildLoadingAnimation(int index) {
+    final progress = _generationProgress[index] ?? 0.0;
+    final percentComplete = (progress * 100).toInt();
+
+    return Container(
+      width: 240,
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Lottie animation
+          SizedBox(
+            height: 120,
+            width: 120,
+            child: Lottie.asset(
+              loadingAnimation2,
+              fit: BoxFit.contain,
+            ),
+          ),
+
+          SizedBox(height: 16),
+
+          // Text showing what's happening
+          Text(
+            "Generating your image...",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+
+          SizedBox(height: 12),
+
+          // Progress bar
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: Colors.grey.shade800,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+          ),
+
+          SizedBox(height: 8),
+
+          // Percentage text
+          Text(
+            "$percentComplete% complete",
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+            ),
+          ),
+
+          SizedBox(height: 8),
+
+          // Estimated time remaining
+          Text(
+            "Estimated time remaining: ${_formatRemainingTime(progress)}",
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to format remaining time
+  String _formatRemainingTime(double progress) {
+    if (progress >= 1.0) return "Complete";
+
+    final remainingSeconds =
+        (generationTimeInSeconds * (1.0 - progress)).toInt();
+    if (remainingSeconds < 1) return "Less than 1 second";
+
+    return "$remainingSeconds seconds";
   }
 }

@@ -1,4 +1,5 @@
-part of 'video_bloc.dart';
+import 'package:brainwave/src/features/video/domain/model/video_model.dart';
+import 'package:flutter/material.dart';
 
 @immutable
 sealed class VideoState {}

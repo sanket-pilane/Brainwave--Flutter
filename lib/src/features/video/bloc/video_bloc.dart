@@ -2,12 +2,13 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:brainwave/src/features/video/bloc/video_state.dart';
+
 import 'package:brainwave/src/features/video/domain/model/video_model.dart';
 import 'package:brainwave/src/features/video/domain/repo/video_repo.dart';
 import 'package:meta/meta.dart';
 
 part 'video_event.dart';
-part 'video_state.dart';
 
 class VideoBloc extends Bloc<VideoEvent, VideoState> {
   VideoBloc() : super(VideoSuccessState(messages: [])) {
